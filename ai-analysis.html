@@ -1,0 +1,1154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI 分析</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background: #F7F8FA;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== 手机容器 ===== */
+        .mobile-container {
+            max-width: 430px;
+            margin: 0 auto;
+            min-height: 100vh;
+            background: #F7F8FA;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ===== 顶部导航栏 ===== */
+        .nav-bar {
+            background: white;
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+        }
+
+        .nav-left, .nav-right {
+            width: 40px;
+            display: flex;
+            align-items: center;
+        }
+
+        .back-btn {
+            background: none;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+        }
+
+        .nav-title {
+            flex: 1;
+            text-align: center;
+            font-size: 17px;
+            font-weight: 600;
+            color: #1F2D3D;
+        }
+
+        /* ===== 聊天区域 ===== */
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+        }
+
+        /* ===== 消息样式 ===== */
+        .message {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .avatar.ai {
+            background: linear-gradient(135deg, #EB3223 0%, #FF6B6B 100%);
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .avatar.user {
+            background: #EDEFF2;
+            color: #8A8F99;
+        }
+
+        .message-content {
+            max-width: calc(100% - 46px);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .message-text {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 16px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #1F2D3D;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .message.user .message-text {
+            background: #EB3223;
+            color: white;
+            border-radius: 16px 16px 4px 16px;
+        }
+
+        .message.ai .message-text {
+            border-radius: 16px 16px 16px 4px;
+        }
+
+        /* ===== 图表卡片 ===== */
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            margin-top: 4px;
+        }
+
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2D3D;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 环形图 ===== */
+        .pie-chart {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .pie-svg {
+            width: 160px;
+            height: 160px;
+        }
+
+        .pie-center {
+            position: absolute;
+            text-align: center;
+        }
+
+        .pie-center-label {
+            font-size: 11px;
+            color: #8A8F99;
+            margin-bottom: 2px;
+        }
+
+        .pie-center-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1F2D3D;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #1F2D3D;
+        }
+
+        .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        .chart-insight {
+            background: #F7F8FA;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 13px;
+            color: #1F2D3D;
+            line-height: 1.5;
+            margin-top: 12px;
+        }
+
+        .chart-insight strong {
+            color: #EB3223;
+        }
+
+        /* ===== 柱状图 ===== */
+        .bar-chart {
+            height: 150px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            padding: 0 10px;
+        }
+
+        .bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 50px;
+        }
+
+        .bar {
+            width: 32px;
+            background: #EB3223;
+            border-radius: 4px 4px 0 0;
+            transition: height 0.3s ease;
+            position: relative;
+        }
+
+        .bar::before {
+            content: attr(data-value);
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            font-weight: 500;
+            color: #1F2D3D;
+        }
+
+        .bar-label {
+            margin-top: 6px;
+            font-size: 11px;
+            color: #8A8F99;
+            text-align: center;
+        }
+
+        /* ===== 洞察卡片 ===== */
+        .insight-card {
+            background: #F7F8FA;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #1F2D3D;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+
+        .insight-card strong {
+            color: #EB3223;
+        }
+
+        /* ===== 结论卡片 ===== */
+        .conclusion-card {
+            background: linear-gradient(135deg, #FFF0F0 0%, #FFFFFF 100%);
+            border: 1px solid #EB3223;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 13px;
+            color: #1F2D3D;
+            line-height: 1.6;
+        }
+
+        /* ===== 还款计划卡片 ===== */
+        .payment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 4px;
+        }
+
+        .payment-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .payment-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1F2D3D;
+        }
+
+        .payment-total {
+            font-size: 20px;
+            font-weight: 600;
+            color: #EB3223;
+        }
+
+        .payment-label {
+            font-size: 12px;
+            color: #8A8F99;
+            margin-right: 4px;
+        }
+
+        .payment-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F7F8FA;
+        }
+
+        .payment-item:last-child {
+            border-bottom: none;
+        }
+
+        .payment-item-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-platform {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1F2D3D;
+        }
+
+        .payment-date {
+            font-size: 12px;
+            color: #8A8F99;
+            background: #F7F8FA;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .payment-amount {
+            font-size: 15px;
+            font-weight: 600;
+            color: #EB3223;
+        }
+
+        .payment-urgent {
+            color: #EB3223;
+        }
+
+        .payment-normal {
+            color: #4CAF50;
+        }
+
+        /* ===== 快捷回复 ===== */
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .quick-btn {
+            padding: 8px 14px;
+            background: white;
+            color: #EB3223;
+            border: 1px solid #EB3223;
+            border-radius: 18px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .quick-btn:hover {
+            background: #FFEBEE;
+        }
+
+        /* ===== 底部输入区 ===== */
+        .input-area {
+            background: white;
+            padding: 12px 16px;
+            box-shadow: 0 -1px 0 rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .input-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #F7F8FA;
+            border-radius: 20px;
+            padding: 8px 14px;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            color: #1F2D3D;
+            resize: none;
+            max-height: 100px;
+            outline: none;
+        }
+
+        .send-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #EB3223;
+            color: white;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .send-btn:disabled {
+            background: #EDEFF2;
+            cursor: not-allowed;
+        }
+
+        /* ===== 打字动画 ===== */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px 14px;
+            background: white;
+            border-radius: 16px;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            background: #EB3223;
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-container">
+        <nav class="nav-bar">
+            <div class="nav-left">
+                <button class="back-btn" onclick="goBack()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 18l-6-6 6-6"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="nav-title">AI 分析</div>
+            <div class="nav-right"></div>
+        </nav>
+
+        <div class="chat-container" id="chatContainer">
+            <!-- 消息会动态添加到这里 -->
+        </div>
+
+        <div class="input-area">
+            <div class="input-wrapper">
+                <input type="text" id="chatInput" class="chat-input" placeholder="输入问题..." onkeypress="handleKeyPress(event)">
+            </div>
+            <button class="send-btn" id="sendBtn" onclick="sendUserMessage()" disabled>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initAnalysis();
+        });
+
+        // 绑定输入框事件
+        const chatInput = document.getElementById('chatInput');
+        chatInput.addEventListener('input', () => {
+            document.getElementById('sendBtn').disabled = !chatInput.value.trim();
+        });
+
+        // 初始化分析
+        function initAnalysis() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+
+            if (view === 'payment') {
+                initPaymentPlan();
+            } else {
+                initDebtAnalysis();
+            }
+        }
+
+        // 初始化债务分析
+        function initDebtAnalysis() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // 欢迎消息
+            const welcomeHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            你好！我已经分析了你的财务状况。让我为你展示详细的分析报告...
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML = welcomeHTML;
+            scrollToBottom();
+
+            // 显示加载动画
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    showDebtStructure();
+                }, 1500);
+            }, 500);
+        }
+
+        // 初始化还款计划
+        function initPaymentPlan() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            // 欢迎消息
+            const welcomeHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            你好！让我为你展示还款计划...
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML = welcomeHTML;
+            scrollToBottom();
+
+            // 直接显示还款计划
+            setTimeout(() => {
+                showPaymentPlan();
+            }, 500);
+        }
+
+        // 显示打字动画
+        function showTypingIndicator() {
+            const chatContainer = document.getElementById('chatContainer');
+            const typingHTML = `
+                <div class="message ai" id="typingMessage">
+                    <div class="avatar ai">AI</div>
+                    <div class="typing-indicator">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            `;
+            chatContainer.innerHTML += typingHTML;
+            scrollToBottom();
+        }
+
+        // 移除打字动画
+        function removeTypingIndicator() {
+            const typingMessage = document.getElementById('typingMessage');
+            if (typingMessage) {
+                typingMessage.remove();
+            }
+        }
+
+        // 显示债务结构
+        function showDebtStructure() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            首先，让我看看你的债务结构：
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">债务结构分布</div>
+                            <div class="pie-chart">
+                                <svg class="pie-svg" viewBox="0 0 200 200">
+                                    <!-- Akulaku: 42% -->
+                                    <circle cx="100" cy="100" r="70" fill="none" stroke="#EB3223" stroke-width="26"
+                                        stroke-dasharray="185.3 256.4" stroke-dashoffset="0"
+                                        transform="rotate(-90 100 100)"/>
+                                    <!-- Kredivo: 31% -->
+                                    <circle cx="100" cy="100" r="70" fill="none" stroke="#FF6B6B" stroke-width="26"
+                                        stroke-dasharray="136.9 256.4" stroke-dashoffset="-185.3"
+                                        transform="rotate(-90 100 100)"/>
+                                    <!-- Shopee: 18% -->
+                                    <circle cx="100" cy="100" r="70" fill="none" stroke="#FFD93D" stroke-width="26"
+                                        stroke-dasharray="79.5 256.4" stroke-dashoffset="-322.2"
+                                        transform="rotate(-90 100 100)"/>
+                                    <!-- AdaKami: 9% -->
+                                    <circle cx="100" cy="100" r="70" fill="none" stroke="#6BCF7F" stroke-width="26"
+                                        stroke-dasharray="39.7 256.4" stroke-dashoffset="-401.7"
+                                        transform="rotate(-90 100 100)"/>
+                                </svg>
+                                <div class="pie-center">
+                                    <div class="pie-center-label">总负债</div>
+                                    <div class="pie-center-value">Rp 10M</div>
+                                </div>
+                            </div>
+                            <div class="chart-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #EB3223;"></div>
+                                    <span>Akulaku 42%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #FF6B6B;"></div>
+                                    <span>Kredivo 31%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #FFD93D;"></div>
+                                    <span>Shopee 18%</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: #6BCF7F;"></div>
+                                    <span>AdaKami 9%</span>
+                                </div>
+                            </div>
+                            <div class="chart-insight">
+                                你的债务主要集中在 <strong>Akulaku</strong> 与 <strong>Kredivo</strong>，两者合计占总负债的约 73%
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+
+            // 继续显示还款压力
+            setTimeout(() => showPaymentPressure(), 800);
+        }
+
+        // 显示还款压力
+        function showPaymentPressure() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            接下来是近期还款压力分析：
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">近期还款压力</div>
+                            <div class="bar-chart">
+                                <div class="bar-item">
+                                    <div class="bar" style="height: 100px;" data-value="3.5M"></div>
+                                    <div class="bar-label">本月</div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="bar" style="height: 80px;" data-value="2.8M"></div>
+                                    <div class="bar-label">下月</div>
+                                </div>
+                                <div class="bar-item">
+                                    <div class="bar" style="height: 54px;" data-value="1.9M"></div>
+                                    <div class="bar-label">第三个月</div>
+                                </div>
+                            </div>
+                            <div class="chart-insight">
+                                未来 30 天内的还款压力较高，主要来自 <strong>Akulaku</strong> 与 <strong>Kredivo</strong> 的分期账单
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+
+            // 继续显示风险洞察
+            setTimeout(() => showRiskInsights(), 800);
+        }
+
+        // 显示风险洞察
+        function showRiskInsights() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            根据分析，我发现以下风险点：
+                        </div>
+                        <div class="chart-card">
+                            <div class="chart-title">风险与洞察</div>
+                            <div class="insight-card">
+                                <strong>Kredivo</strong> 的还款截止日为 5 号，早于你的主要收入时间，短期内存在现金流压力
+                            </div>
+                            <div class="insight-card">
+                                <strong>Akulaku</strong> 的利息与手续费占比较高，若延后还款将明显增加整体还款成本
+                            </div>
+                            <div class="insight-card">
+                                部分小额借款分散在多个平台，增加了还款管理的复杂度
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+
+            // 继续显示结论
+            setTimeout(() => showConclusion(), 800);
+        }
+
+        // 显示结论
+        function showConclusion() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            这是我的分析结论和建议：
+                        </div>
+                        <div class="conclusion-card">
+                            你当前的借款主要集中在少数平台，且短期内还款金额较为集中。优先处理高利息、还款日靠前的账单，有助于降低逾期风险并减轻资金压力。
+                        </div>
+                        <div class="quick-replies">
+                            <button class="quick-btn" onclick="showPaymentPlan()">查看还款计划</button>
+                            <button class="quick-btn" onclick="askForMore()">需要更多建议</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+        }
+
+        // 显示还款计划
+        function showPaymentPlan() {
+            showUserMessage('查看还款计划');
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    showPaymentPlanContent();
+                }, 1500);
+            }, 500);
+        }
+
+        // 显示还款计划内容
+        function showPaymentPlanContent() {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message ai">
+                    <div class="avatar ai">AI</div>
+                    <div class="message-content">
+                        <div class="message-text">
+                            基于你的债务情况，我为你制定了还款计划。建议优先还款顺序：
+                        </div>
+                        <div class="payment-card">
+                            <div class="payment-header">
+                                <div>
+                                    <div class="payment-label">本月待还总额</div>
+                                    <div class="payment-total">Rp 3,500,000</div>
+                                </div>
+                            </div>
+                            <div class="payment-item">
+                                <div class="payment-item-left">
+                                    <div class="payment-platform">Kredivo</div>
+                                    <span class="payment-date">1月5日</span>
+                                </div>
+                                <div class="payment-amount payment-urgent">Rp 1,200,000</div>
+                            </div>
+                            <div class="payment-item">
+                                <div class="payment-item-left">
+                                    <div class="payment-platform">Akulaku</div>
+                                    <span class="payment-date">1月24日</span>
+                                </div>
+                                <div class="payment-amount">Rp 2,300,000</div>
+                            </div>
+                        </div>
+                        <div class="chart-card" style="margin-top: 8px;">
+                            <div class="chart-title">下月待还预测</div>
+                            <div class="payment-item">
+                                <div class="payment-item-left">
+                                    <div class="payment-platform">Kredivo</div>
+                                    <span class="payment-date">2月5日</span>
+                                </div>
+                                <div class="payment-amount">Rp 1,500,000</div>
+                            </div>
+                            <div class="payment-item">
+                                <div class="payment-item-left">
+                                    <div class="payment-platform">Shopee</div>
+                                    <span class="payment-date">2月15日</span>
+                                </div>
+                                <div class="payment-amount">Rp 800,000</div>
+                            </div>
+                            <div class="payment-item">
+                                <div class="payment-item-left">
+                                    <div class="payment-platform">AdaKami</div>
+                                    <span class="payment-date">2月20日</span>
+                                </div>
+                                <div class="payment-amount">Rp 500,000</div>
+                            </div>
+                        </div>
+                        <div class="quick-replies">
+                            <button class="quick-btn" onclick="askAboutInterest()">了解利息计算</button>
+                            <button class="quick-btn" onclick="askAboutOptimization()">如何优化还款</button>
+                            <button class="quick-btn" onclick="showDebtStructure()">重新查看分析</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+        }
+
+        // 需要更多建议
+        function askForMore() {
+            showUserMessage('需要更多建议');
+            
+            setTimeout(() => {
+                const chatContainer = document.getElementById('chatContainer');
+                const messageHTML = `
+                    <div class="message ai">
+                        <div class="avatar ai">AI</div>
+                        <div class="message-content">
+                            <div class="message-text">
+                                当然！我可以为你提供更多建议，你想了解：
+                            </div>
+                            <div class="quick-replies">
+                                <button class="quick-btn" onclick="showPaymentPlan()">还款计划详情</button>
+                                <button class="quick-btn" onclick="askAboutInterest()">利息计算方式</button>
+                                <button class="quick-btn" onclick="askAboutOptimization()">还款优化建议</button>
+                                <button class="quick-btn" onclick="askAboutRisk()">风险评估</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                chatContainer.innerHTML += messageHTML;
+                scrollToBottom();
+            }, 500);
+        }
+
+        // 了解利息计算
+        function askAboutInterest() {
+            showUserMessage('了解利息计算');
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const chatContainer = document.getElementById('chatContainer');
+                    const messageHTML = `
+                        <div class="message ai">
+                            <div class="avatar ai">AI</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    关于利息计算，让我为你详细说明：
+                                </div>
+                                <div class="chart-card">
+                                    <div class="chart-title">各平台利息对比</div>
+                                    <div class="insight-card">
+                                        <strong>Akulaku</strong>：月利率 2.6% - 3.5%，日息约 0.087% - 0.117%
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>Kredivo</strong>：月利率 2.5% - 3.0%，日息约 0.083% - 0.1%
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>Shopee</strong>：月利率 2.0% - 2.5%，日息约 0.067% - 0.083%
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>AdaKami</strong>：月利率 1.8% - 2.2%，日息约 0.06% - 0.073%
+                                    </div>
+                                </div>
+                                <div class="message-text" style="margin-top: 8px;">
+                                    <strong>建议</strong>：优先还款顺序应考虑利息高低，高利息平台应优先偿还以降低整体成本。
+                                </div>
+                                <div class="quick-replies">
+                                    <button class="quick-btn" onclick="askAboutOptimization()">如何优化还款</button>
+                                    <button class="quick-btn" onclick="showPaymentPlan()">查看还款计划</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.innerHTML += messageHTML;
+                    scrollToBottom();
+                }, 1500);
+            }, 500);
+        }
+
+        // 如何优化还款
+        function askAboutOptimization() {
+            showUserMessage('如何优化还款');
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const chatContainer = document.getElementById('chatContainer');
+                    const messageHTML = `
+                        <div class="message ai">
+                            <div class="avatar ai">AI</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    根据你的情况，我建议以下还款优化策略：
+                                </div>
+                                <div class="chart-card">
+                                    <div class="chart-title">还款优化建议</div>
+                                    <div class="insight-card">
+                                        <strong>策略1：优先还款</strong><br>
+                                        优先偿还 Kredivo（1月5日到期），避免逾期和信用受损
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>策略2：高息优先</strong><br>
+                                        在资金充足时，优先还清 Akulaku 的高息贷款
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>策略3：收入分配</strong><br>
+                                        建议每月分配 70% 收入用于还款，30% 用于应急储备
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>策略4：避免新增</strong><br>
+                                        在未还清现有债务前，避免申请新的借款
+                                    </div>
+                                </div>
+                                <div class="message-text" style="margin-top: 8px;">
+                                    按照这个策略，你预计可以在 <strong>6个月内</strong> 还清所有债务，同时节省约 <strong>Rp 500,000</strong> 的利息成本。
+                                </div>
+                                <div class="quick-replies">
+                                    <button class="quick-btn" onclick="askAboutRisk()">风险评估</button>
+                                    <button class="quick-btn" onclick="showPaymentPlan()">查看还款计划</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.innerHTML += messageHTML;
+                    scrollToBottom();
+                }, 1500);
+            }, 500);
+        }
+
+        // 风险评估
+        function askAboutRisk() {
+            showUserMessage('风险评估');
+            
+            setTimeout(() => {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const chatContainer = document.getElementById('chatContainer');
+                    const messageHTML = `
+                        <div class="message ai">
+                            <div class="avatar ai">AI</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    让我为你进行全面的风险评估：
+                                </div>
+                                <div class="chart-card">
+                                    <div class="chart-title">风险评估报告</div>
+                                    <div class="insight-card">
+                                        <strong>总体风险等级：中等</strong><br>
+                                        你的债务收入比为 35%，在可控范围内，但需要密切监控现金流
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>逾期风险</strong><br>
+                                        本月 Kredivo 到期日早于收入日，存在短期现金流压力，建议提前准备资金
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>利率风险</strong><br>
+                                        部分平台利率偏高，长期来看会增加还款负担，建议优先处理高息债务
+                                    </div>
+                                    <div class="insight-card">
+                                        <strong>集中度风险</strong><br>
+                                        债务集中在 2 个主要平台，虽然便于管理，但也增加了集中风险
+                                    </div>
+                                </div>
+                                <div class="message-text" style="margin-top: 8px;">
+                                    <strong>缓解措施</strong>：建立应急储备金、严格控制新增借款、优化还款顺序
+                                </div>
+                                <div class="quick-replies">
+                                    <button class="quick-btn" onclick="askAboutOptimization()">优化建议</button>
+                                    <button class="quick-btn" onclick="showPaymentPlan()">还款计划</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.innerHTML += messageHTML;
+                    scrollToBottom();
+                }, 1500);
+            }, 500);
+        }
+
+        // 显示用户消息
+        function showUserMessage(text) {
+            const chatContainer = document.getElementById('chatContainer');
+            
+            const messageHTML = `
+                <div class="message user">
+                    <div class="avatar user">我</div>
+                    <div class="message-content">
+                        <div class="message-text">${text}</div>
+                    </div>
+                </div>
+            `;
+            
+            chatContainer.innerHTML += messageHTML;
+            scrollToBottom();
+        }
+
+        // 发送用户消息
+        function sendUserMessage() {
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            showUserMessage(text);
+            input.value = '';
+            document.getElementById('sendBtn').disabled = true;
+
+            // 模拟AI回复
+            setTimeout(() => {
+                processUserInput(text);
+            }, 500);
+        }
+
+        // 处理用户输入
+        function processUserInput(text) {
+            // 简单的关键词匹配
+            if (text.includes('还款') || text.includes('计划')) {
+                showPaymentPlan();
+            } else if (text.includes('利息') || text.includes('利率')) {
+                askAboutInterest();
+            } else if (text.includes('优化') || text.includes('建议')) {
+                askAboutOptimization();
+            } else if (text.includes('风险')) {
+                askAboutRisk();
+            } else if (text.includes('分析') || text.includes('结构')) {
+                showUserMessage('重新查看分析');
+                setTimeout(() => {
+                    const chatContainer = document.getElementById('chatContainer');
+                    chatContainer.innerHTML = '';
+                    initAnalysis();
+                }, 500);
+            } else {
+                showTypingIndicator();
+                
+                setTimeout(() => {
+                    removeTypingIndicator();
+                    const chatContainer = document.getElementById('chatContainer');
+                    const messageHTML = `
+                        <div class="message ai">
+                            <div class="avatar ai">AI</div>
+                            <div class="message-content">
+                                <div class="message-text">
+                                    我理解你的问题。你想了解更多关于：
+                                </div>
+                                <div class="quick-replies">
+                                    <button class="quick-btn" onclick="showPaymentPlan()">还款计划</button>
+                                    <button class="quick-btn" onclick="askAboutInterest()">利息计算</button>
+                                    <button class="quick-btn" onclick="askAboutOptimization()">优化建议</button>
+                                    <button class="quick-btn" onclick="askAboutRisk()">风险评估</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    chatContainer.innerHTML += messageHTML;
+                    scrollToBottom();
+                }, 1000);
+            }
+        }
+
+        // 处理回车键
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendUserMessage();
+            }
+        }
+
+        // 返回
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        // 滚动到底部
+        function scrollToBottom() {
+            const chatContainer = document.getElementById('chatContainer');
+            setTimeout(() => {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }, 100);
+        }
+    </script>
+</body>
+</html>
