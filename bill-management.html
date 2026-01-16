@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>账单管理</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+            background-color: #FFFFFF;
+            color: #1F2D3D;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 430px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* ===== Top Bar ===== */
+        .top-bar {
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            background: white;
+            border-bottom: 1px solid #EDEFF2;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            width: 32px;
+            height: 32px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .back-btn svg {
+            width: 24px;
+            height: 24px;
+            color: #1F2D3D;
+        }
+
+        .page-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #1F2D3D;
+            flex: 1;
+            text-align: center;
+        }
+
+        .top-bar-right {
+            width: 32px;
+        }
+
+        /* ===== 内容区 ===== */
+        .content {
+            flex: 1;
+            padding: 16px;
+            padding-bottom: 80px;
+            overflow-y: auto;
+            position: relative;
+            min-height: calc(100vh - 120px);
+        }
+
+        /* ===== 筛选栏 ===== */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+
+        .filter-bar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .filter-chip {
+            padding: 8px 16px;
+            border: 1px solid #EDEFF2;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #8A8F99;
+            background: white;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filter-chip.active {
+            background: #EB3223;
+            color: white;
+            border-color: #EB3223;
+        }
+
+        /* ===== 统计卡片 ===== */
+        .stats-card {
+            background: linear-gradient(135deg, #FFF5F5, #FFFFFF);
+            border: 1px solid #FFE5E5;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #8A8F99;
+            margin-bottom: 4px;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1F2D3D;
+        }
+
+        .stat-value.income {
+            color: #34B46A;
+        }
+
+        .stat-value.expense {
+            color: #EB3223;
+        }
+
+        /* ===== 日期分组 ===== */
+        .date-group {
+            margin-bottom: 20px;
+        }
+
+        .date-header {
+            font-size: 13px;
+            color: #8A8F99;
+            margin-bottom: 8px;
+        }
+
+        /* ===== 账单卡片 ===== */
+        .bill-card {
+            background: white;
+            border: 1px solid #EDEFF2;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .bill-card:hover {
+            border-color: #EB3223;
+            box-shadow: 0 2px 8px rgba(235, 50, 35, 0.1);
+        }
+
+        .bill-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .bill-platform {
+            font-size: 15px;
+            font-weight: 500;
+            color: #1F2D3D;
+        }
+
+        .bill-time {
+            font-size: 12px;
+            color: #8A8F99;
+        }
+
+        .bill-body {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .bill-amount {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .bill-amount.income {
+            color: #34B46A;
+        }
+
+        .bill-amount.expense {
+            color: #EB3223;
+        }
+
+        .bill-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #F7F8FA;
+            color: #8A8F99;
+        }
+
+        .bill-status.paid {
+            background: #E8F9EF;
+            color: #34B46A;
+        }
+
+        .bill-status.pending {
+            background: #FFE5E5;
+            color: #EB3223;
+        }
+
+        .bill-detail {
+            font-size: 13px;
+            color: #8A8F99;
+            margin-top: 8px;
+        }
+
+        /* ===== 空状态 ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            background: #F7F8FA;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .empty-icon svg {
+            width: 40px;
+            height: 40px;
+            color: #8A8F99;
+        }
+
+        .empty-text {
+            font-size: 14px;
+            color: #8A8F99;
+            margin-bottom: 8px;
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: #B8BCC2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <header class="top-bar">
+            <button class="back-btn" onclick="goBack()">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </button>
+            <div class="page-title">账单管理</div>
+            <div class="top-bar-right"></div>
+        </header>
+
+        <!-- 内容区 -->
+        <main class="content">
+            <!-- 筛选栏 -->
+            <div class="filter-bar">
+                <div class="filter-chip active" onclick="filterBills('all')">全部</div>
+                <div class="filter-chip" onclick="filterBills('income')">收入</div>
+                <div class="filter-chip" onclick="filterBills('expense')">支出</div>
+                <div class="filter-chip" onclick="filterBills('paid')">已还</div>
+                <div class="filter-chip" onclick="filterBills('pending')">待还</div>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-card">
+                <div class="stat-item">
+                    <div class="stat-label">本月收入</div>
+                    <div class="stat-value income">+Rp 15M</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">本月支出</div>
+                    <div class="stat-value expense">-Rp 4.7M</div>
+                </div>
+            </div>
+
+            <!-- 今天 -->
+            <div class="date-group">
+                <div class="date-header">今天</div>
+                <div class="bill-card" onclick="viewBillDetail()">
+                    <div class="bill-header">
+                        <div class="bill-platform">工资收入</div>
+                        <div class="bill-time">14:30</div>
+                    </div>
+                    <div class="bill-body">
+                        <div class="bill-amount income">+Rp 15,000,000</div>
+                        <div class="bill-status paid">已到账</div>
+                    </div>
+                    <div class="bill-detail">来源：每月固定工资</div>
+                </div>
+                <div class="bill-card" onclick="viewBillDetail()">
+                    <div class="bill-header">
+                        <div class="bill-platform">Kredivo 还款</div>
+                        <div class="bill-time">10:15</div>
+                    </div>
+                    <div class="bill-body">
+                        <div class="bill-amount expense">-Rp 1,200,000</div>
+                        <div class="bill-status paid">已还款</div>
+                    </div>
+                    <div class="bill-detail">分期账单第 3 期</div>
+                </div>
+            </div>
+
+            <!-- 昨天 -->
+            <div class="date-group">
+                <div class="date-header">昨天</div>
+                <div class="bill-card" onclick="viewBillDetail()">
+                    <div class="bill-header">
+                        <div class="bill-platform">Akulaku 消费</div>
+                        <div class="bill-time">18:45</div>
+                    </div>
+                    <div class="bill-body">
+                        <div class="bill-amount expense">-Rp 3,500,000</div>
+                        <div class="bill-status pending">待还</div>
+                    </div>
+                    <div class="bill-detail">线上购物分期付款</div>
+                </div>
+            </div>
+
+            <!-- 1月20日 -->
+            <div class="date-group">
+                <div class="date-header">1月20日</div>
+                <div class="bill-card" onclick="viewBillDetail()">
+                    <div class="bill-header">
+                        <div class="bill-platform">副业收入</div>
+                        <div class="bill-time">09:20</div>
+                    </div>
+                    <div class="bill-body">
+                        <div class="bill-amount income">+Rp 2,500,000</div>
+                        <div class="bill-status paid">已到账</div>
+                    </div>
+                    <div class="bill-detail">兼职项目报酬</div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function goBack() {
+            window.location.href = 'index.html';
+        }
+
+        function filterBills(type) {
+            document.querySelectorAll('.filter-chip').forEach(chip => {
+                chip.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            // TODO: 实现筛选逻辑
+        }
+
+        function viewBillDetail() {
+            alert('查看账单详情');
+        }
+    </script>
+</body>
+</html>
